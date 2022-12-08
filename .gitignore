@@ -1,6 +1,9 @@
 .DS_Store
 node_modules
 /dist
+/lib
+lib
+.history
 /package-lock.json
 
 # local env files
@@ -21,4 +24,3 @@ yarn-error.log*
 *.sln
 *.sw*
 *.lock
-/.history
