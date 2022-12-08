@@ -30,8 +30,8 @@ module.exports = defineConfig({
       }
     },
     output: {
-      libraryExport: 'default',
-      globalObject: 'this'
+      libraryExport: 'default'
+      // globalObject: 'this'
     }
   },
   chainWebpack(config) {

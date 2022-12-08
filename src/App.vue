@@ -23,16 +23,6 @@
       class="aa"
       style="height: 300px; position: relative"
     >
-      <popper
-        trigger="hover"
-        :options="{
-          placement: 'top'
-        }"
-      >
-        <div class="popper"> Popper Content </div>
-
-        <button slot="reference"> Reference Element </button>
-      </popper>
     </div>
   </div>
 </template>
@@ -84,13 +74,9 @@ export function formatTime(mss) {
   )}.${mss % 1000}`
 }
 
-import slider from './components/slider'
-import wayPopover from './components/popover'
-import Popper from 'vue-popperjs'
-import 'vue-popperjs/dist/vue-popper.css'
 export default {
   name: 'App',
-  components: { wayPopover, Popper },
+  components: {},
 
   // #region 数据相关
   data() {
