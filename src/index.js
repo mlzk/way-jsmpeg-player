@@ -31,5 +31,4 @@ import JsmpegPlayer from './components/jsmpeg-player'
 JsmpegPlayer.install = (Vue) => {
   Vue.component(JsmpegPlayer.name, JsmpegPlayer)
 }
-console.log(null ?? 1231313)
 export default JsmpegPlayer
