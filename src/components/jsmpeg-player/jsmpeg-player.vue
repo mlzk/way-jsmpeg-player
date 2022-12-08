@@ -19,8 +19,8 @@
         {{ displayTitle }}
       </span>
       <div
-        class="recording-tips"
         v-if="isRecording"
+        class="recording-tips"
       >
         <div
           class="recording-icon"
@@ -31,20 +31,23 @@
       <button
         v-if="showCloseBtn"
         class="close-btn jm-icon-close"
-        type="button"
         title="关闭"
+        type="button"
         @click="$emit('close')"
       ></button>
     </div>
     <div
-      class="player-canvas__wrap"
       ref="canvas-wrap"
-      v-loading="loading"
-      :element-loading-text="loadingText"
-      @mousemove.passive="handleCanvasMouseMove"
+      class="player-canvas__wrap"
       @click="handleCanvasClick"
       @dblclick="toggleFullscreen"
+      @mousemove.passive="handleCanvasMouseMove"
     >
+      <!-- <player-state :text="loadingText"></player-state> -->
+      <player-state
+        v-if="loading"
+        :text="loadingText"
+      ></player-state>
       <!-- <canvas class="jsmpeg-canvas"
               ref="canvas" /> -->
       <template v-if="!loading && flags.noSignal">
@@ -58,17 +61,17 @@
     </div>
 
     <div
-      class="player-toolbar"
       v-if="withToolbar"
+      class="player-toolbar"
       :class="{ 'is-show': player && flags.playerHover }"
       @mouseenter="handleToolbarMouseEnter"
       @mouseleave="handleToolbarMouseLeave"
     >
       <button
         class="toolbar-btn play-btn"
-        type="button"
         :class="paused ? 'jm-icon-video-play is-paused' : 'jm-icon-video-pause'"
         :title="paused ? '播放' : '暂停'"
+        type="button"
         @click="handleToolbar('play')"
       ></button>
       <button
@@ -79,12 +82,16 @@
       ></button>
       <button
         class="toolbar-btn volume-btn"
-        type="button"
-        title="音量"
-        v-popover:popover-volume
         :class="isMuted ? 'jm-icon-muted' : 'jm-icon-volume'"
+        title="音量"
+        type="button"
         @click="handleToolbar('mute')"
       ></button>
+      <player-volume
+        :is-muted="isMuted"
+        :value.sync="volume"
+        @change="$emit('volume-change', volume)"
+      ></player-volume>
       <div class="progress-bar">
         <span
           v-if="showDuration"
@@ -106,36 +113,36 @@
       ></button>
       <button
         class="toolbar-btn recording-btn jm-icon-recording"
-        type="button"
         :class="isRecording ? 'is-recording' : ''"
         :title="isRecording ? '停止录制' : '录制'"
+        type="button"
         @click="handleToolbar('recording')"
       ></button>
       <button
+        v-popover:popover-setting
         class="toolbar-btn setting-btn jm-icon-settings"
         title="设置"
         type="button"
-        v-popover:popover-setting
       ></button>
       <button
         class="toolbar-btn fullscreen-btn"
-        type="button"
         :class="
           flags.fullscreen ? 'jm-icon-exitfullscreen' : 'jm-icon-fullscreen'
         "
         :title="flags.fullscreen ? '取消全屏' : '全屏'"
+        type="button"
         @click="handleToolbar('fullscreen')"
       ></button>
     </div>
     <div class="overlayers">
       <template v-if="withToolbar">
         <el-popover
-          popper-class="jsmpeg-player-popover popover-setting"
           ref="popover-setting"
-          trigger="hover"
-          placement="top-end"
-          :visible-arrow="popoverVisibleArrow"
           :append-to-body="false"
+          placement="top-end"
+          popper-class="jsmpeg-player-popover popover-setting"
+          trigger="hover"
+          :visible-arrow="popoverVisibleArrow"
         >
           <!-- <div class="setting-item">
             <span class="label">禁用WebGL</span>
@@ -161,12 +168,16 @@
           >
             <span class="label">自动拉伸</span>
             <div class="input__wrap">
-              <el-switch
-                class="input"
+              <!-- <el-switch
                 v-model="playerSettings.autoStretch"
+                class="input"
                 @change="settingPlayer('autoStretch', $event)"
               >
-              </el-switch>
+              </el-switch> -->
+              <player-switch
+                :value.sync="playerSettings.autoStretch"
+                @change="settingPlayer('autoStretch', $event)"
+              ></player-switch>
             </div>
           </div>
           <div
@@ -198,33 +209,6 @@
           </div>
         </div> -->
         </el-popover>
-
-        <el-popover
-          popper-class="jsmpeg-player-popover popover-volume"
-          ref="popover-volume"
-          trigger="hover"
-          placement="top"
-          :visible-arrow="popoverVisibleArrow"
-          :append-to-body="false"
-        >
-          <div class="volume-value">{{ volumePercent }}</div>
-          <el-slider
-            v-model="volume"
-            vertical
-            height="120px"
-            :max="1"
-            :min="0"
-            :step="0.01"
-            :show-tooltip="false"
-            :marks="{
-              0: '',
-              0.5: '',
-              1: ''
-            }"
-            @change="$emit('volume-change', volume)"
-          >
-          </el-slider>
-        </el-popover>
       </template>
     </div>
   </div>
@@ -233,6 +217,9 @@
 <script>
 import JSMpeg from './jsmpeg'
 import fullscreen from '@/utils/fullscreen'
+import PlayerVolume from './components/player-volume'
+import PlayerState from './components/player-state'
+import PlayerSwitch from './components/player-switch'
 
 /** 补零 */
 function prefixPadZero(num) {
@@ -287,7 +274,19 @@ const defaultOptions = () => ({
 })
 
 export default {
-  name: 'jsmpeg-player',
+  name: 'JsmpegPlayer',
+  components: {
+    PlayerVolume,
+    PlayerState,
+    PlayerSwitch
+  },
+
+  inject: {
+    /** @returns {any} */
+    rootTabs: {
+      default: ''
+    }
+  },
   inheritAttrs: false,
 
   // #region 组件基础
@@ -317,6 +316,11 @@ export default {
       type: Boolean,
       default: true
     },
+    /** 总是显示toolbar */
+    alwaysShowToolbar: {
+      type: Boolean,
+      default: false
+    },
     popoverVisibleArrow: {
       type: Boolean,
       default: true
@@ -327,14 +331,7 @@ export default {
     },
     loadingText: {
       type: String,
-      default: '拼命加载中...'
-    }
-  },
-  components: {},
-  inject: {
-    /** @returns {any} */
-    rootTabs: {
-      default: ''
+      default: 'LOADING'
     }
   },
   // #endregion
@@ -452,7 +449,11 @@ export default {
     }
   },
   watch: {
-    url(nval) {
+    alwaysShowToolbar: {
+      handler: 'handleAlwaysShowToolbar',
+      immediate: true
+    },
+    url() {
       // this.rotate(0)
       // if (this.player) {
       //   this.player.setUrl(nval)
@@ -494,7 +495,9 @@ export default {
             this.intoBackground()
             this.$emit('update:inBackground', true)
           }
-        } catch (error) {}
+        } catch (error) {
+          console.log(error)
+        }
       })
     }
     window.addEventListener('unload', () => {
@@ -511,7 +514,11 @@ export default {
     init() {
       this.initPlayer()
     },
-
+    handleAlwaysShowToolbar() {
+      if (this.alwaysShowToolbar) {
+        this.flags.playerHover = true
+      }
+    },
     initPlayer() {
       if (!this.url) return
 
@@ -709,6 +716,7 @@ export default {
         case 'autoStretch':
           if (!this.flags.gotResolution) return
 
+          // eslint-disable-next-line no-case-declarations
           const canvas = this.player.canvas
           if (value) {
             if (canvas.width > canvas.height) {
@@ -766,12 +774,12 @@ export default {
       this.flags.playerHover = true
       clearTimeout(this.timers.canvasMouseMove)
       this.timers.canvasMouseMove = setTimeout(() => {
-        this.flags.playerHover = false
+        if (!this.alwaysShowToolbar) this.flags.playerHover = false
       }, 3000)
     },
     handlePlayerMouseLeave() {
       clearTimeout(this.timers.canvasMouseMove)
-      this.flags.playerHover = false
+      if (!this.alwaysShowToolbar) this.flags.playerHover = false
     },
     handleCanvasClick() {},
     handleToolbarMouseEnter() {

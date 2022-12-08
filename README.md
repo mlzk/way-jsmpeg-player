@@ -87,6 +87,7 @@ export default {
 | show-duration  | boolean | 是否现实持续播放时间                                                         |
 | default-mute   | boolean | 默认静音                                                                     |
 | with-toolbar   | boolean | 是否需要工具栏                                                               |
+|alwaysShowToolbar| boolean | 是否总是显示工具栏 （with-toolbar需要设置为true）                                                            |
 | loading-text   | boolean | 加载时的文本，默认为：拼命加载中...                                          |
 
 **原生属性：**

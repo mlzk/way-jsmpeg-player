@@ -8,8 +8,8 @@
           style="width: 300px"
         ></el-input>
         <el-button
-          @click="url = tempUrl"
           style="margin-left: 10px"
+          @click="url = tempUrl"
         >
           连接
         </el-button>
@@ -17,7 +17,12 @@
       </el-row>
       <el-row class="current-time"> 延迟测试：{{ currTime }} </el-row>
     </div>
-    <div class="main"> <jsmpeg-player :url="url" /></div>
+    <div class="main">
+      <jsmpeg-player
+        :always-show-toolbar="true"
+        :url="url"
+        :with-toolbar="true"
+    /></div>
 
     <div
       class="aa"
