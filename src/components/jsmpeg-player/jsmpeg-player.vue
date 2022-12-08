@@ -126,16 +126,6 @@
         :title="flags.fullscreen ? '取消全屏' : '全屏'"
         @click="handleToolbar('fullscreen')"
       ></button>
-      <popper
-        trigger="hover"
-        :options="{
-          placement: 'top'
-        }"
-      >
-        <div class="popper"> Popper Content </div>
-
-        <button slot="reference"> Reference Element </button>
-      </popper>
     </div>
     <div class="overlayers">
       <template v-if="withToolbar">
@@ -241,8 +231,6 @@
 </template>
 
 <script>
-import Popper from 'vue-popperjs'
-import 'vue-popperjs/dist/vue-popper.css'
 import JSMpeg from './jsmpeg'
 import fullscreen from '@/utils/fullscreen'
 
@@ -342,9 +330,7 @@ export default {
       default: '拼命加载中...'
     }
   },
-  components: {
-    Popper
-  },
+  components: {},
   inject: {
     /** @returns {any} */
     rootTabs: {

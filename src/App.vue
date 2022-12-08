@@ -23,16 +23,6 @@
       class="aa"
       style="height: 300px; position: relative"
     >
-      <popper
-        trigger="hover"
-        :options="{
-          placement: 'top'
-        }"
-      >
-        <div class="popper"> Popper Content </div>
-
-        <button slot="reference"> Reference Element </button>
-      </popper>
     </div>
   </div>
 </template>
