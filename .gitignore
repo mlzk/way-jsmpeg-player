@@ -3,6 +3,7 @@ node_modules
 /dist
 /lib
 lib
+/lib/
 .history
 /package-lock.json
 
