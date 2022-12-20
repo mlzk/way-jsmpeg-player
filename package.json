@@ -1,6 +1,6 @@
 {
   "name": "way-jsmpeg-player",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "base jsmpeg.js vue player",
   "license": "MIT",
   "main": "lib/way-jsmpeg-player.umd.min.js",
@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "core-js": "^3.24.1",
-    "vue-popperjs": "^2.3.0",
     "vue-slide-bar": "^1.2.0"
   },
   "devDependencies": {
