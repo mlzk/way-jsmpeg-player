@@ -37,6 +37,19 @@
       ></button>
     </div>
     <div
+      class="video-tips video-tips-top"
+      :class="{ 'with-titleBar': showTitle }"
+    >
+      <slot name="video-tips-top">
+        <div class="video-tips-left video-tips-text">{{
+          videoTipsTopLeft
+        }}</div>
+        <div class="video-tips-right video-tips-text">{{
+          videoTipsTopRight
+        }}</div>
+      </slot>
+    </div>
+    <div
       ref="canvas-wrap"
       class="player-canvas__wrap"
       @click="handleCanvasClick"
@@ -44,10 +57,10 @@
       @mousemove.passive="handleCanvasMouseMove"
     >
       <!-- <player-state :text="loadingText"></player-state> -->
-      <player-state
+      <player-loading
         v-if="loading"
         :text="loadingText"
-      ></player-state>
+      ></player-loading>
       <!-- <canvas class="jsmpeg-canvas"
               ref="canvas" /> -->
       <template v-if="!loading && flags.noSignal">
@@ -59,6 +72,24 @@
         </template>
       </template>
     </div>
+    <div
+      class="video-tips video-tips-bottom"
+      :class="{ 'with-toolbar': withToolbar }"
+    >
+      <slot name="video-tips-bottom">
+        <div class="video-tips-left video-tips-text">{{
+          videoTipsBottomLeft
+        }}</div>
+        <div class="video-tips-right video-tips-text">{{
+          videoTipsBottomRight
+        }}</div>
+      </slot>
+    </div>
+    <player-settings
+      ref="settingsPanel"
+      :auto-stretch.sync="playerSettings.autoStretch"
+      @settingsChange="settingsChange"
+    />
 
     <div
       v-if="withToolbar"
@@ -118,11 +149,12 @@
         type="button"
         @click="handleToolbar('recording')"
       ></button>
+
       <button
-        v-popover:popover-setting
         class="toolbar-btn setting-btn jm-icon-settings"
         title="设置"
         type="button"
+        @click="settingsToggle"
       ></button>
       <button
         class="toolbar-btn fullscreen-btn"
@@ -134,83 +166,6 @@
         @click="handleToolbar('fullscreen')"
       ></button>
     </div>
-    <div class="overlayers">
-      <template v-if="withToolbar">
-        <el-popover
-          ref="popover-setting"
-          :append-to-body="false"
-          placement="top-end"
-          popper-class="jsmpeg-player-popover popover-setting"
-          trigger="hover"
-          :visible-arrow="popoverVisibleArrow"
-        >
-          <!-- <div class="setting-item">
-            <span class="label">禁用WebGL</span>
-            <div class="input__wrap">
-              <el-switch class="input"
-                         v-model="playerSettings.disableGl">
-              </el-switch>
-            </div>
-          </div> -->
-          <!-- <div class="setting-item"
-               highlight>
-            <span class="label">后台播放</span>
-            <div class="input__wrap">
-              <el-switch class="input"
-                         v-model="playerSettings.backgroudPlay"
-                         @change="settingPlayer('pauseWhenHidden',!$event)">
-              </el-switch>
-            </div>
-          </div> -->
-          <div
-            class="setting-item"
-            highlight
-          >
-            <span class="label">自动拉伸</span>
-            <div class="input__wrap">
-              <!-- <el-switch
-                v-model="playerSettings.autoStretch"
-                class="input"
-                @change="settingPlayer('autoStretch', $event)"
-              >
-              </el-switch> -->
-              <player-switch
-                :value.sync="playerSettings.autoStretch"
-                @change="settingPlayer('autoStretch', $event)"
-              ></player-switch>
-            </div>
-          </div>
-          <div
-            class="setting-item"
-            highlight
-          >
-            <span class="label">旋转画面</span>
-            <div class="input__wrap">
-              <button
-                class="toolbar-btn jm-icon-rotate-left"
-                title="向左旋转90度"
-                type="button"
-                @click="rotate(-90, true)"
-              ></button>
-              <button
-                class="toolbar-btn jm-icon-rotate-right"
-                title="向右旋转90度"
-                type="button"
-                @click="rotate(90, true)"
-              ></button>
-            </div>
-          </div>
-          <!-- <div class="setting-item">
-          <span class="label">test</span>
-          <div class="input__wrap">
-            <el-button class="input"
-                       @click="player.stop(true)">
-            </el-button>
-          </div>
-        </div> -->
-        </el-popover>
-      </template>
-    </div>
   </div>
 </template>
 
@@ -218,8 +173,8 @@
 import JSMpeg from './jsmpeg'
 import fullscreen from '@/utils/fullscreen'
 import PlayerVolume from './components/player-volume'
-import PlayerState from './components/player-state'
-import PlayerSwitch from './components/player-switch'
+import PlayerLoading from './components/player-loading'
+import playerSettings from './components/player-settings'
 
 /** 补零 */
 function prefixPadZero(num) {
@@ -277,8 +232,8 @@ export default {
   name: 'JsmpegPlayer',
   components: {
     PlayerVolume,
-    PlayerState,
-    PlayerSwitch
+    PlayerLoading,
+    playerSettings
   },
 
   inject: {
@@ -304,7 +259,7 @@ export default {
     /** 是否现实持续播放时间 */
     showDuration: {
       type: Boolean,
-      default: true
+      default: false
     },
     /** 默认静音 */
     defaultMute: {
@@ -332,6 +287,22 @@ export default {
     loadingText: {
       type: String,
       default: 'LOADING'
+    },
+    videoTipsTopLeft: {
+      type: String,
+      default: ''
+    },
+    videoTipsTopRight: {
+      type: String,
+      default: ''
+    },
+    videoTipsBottomLeft: {
+      type: String,
+      default: ''
+    },
+    videoTipsBottomRight: {
+      type: String,
+      default: ''
     }
   },
   // #endregion
@@ -375,7 +346,7 @@ export default {
   computed: {
     /** @returns {string} */
     displayTitle() {
-      return this.title || this.url
+      return this.title
     },
     /** @returns {boolean} */
     paused() {
@@ -513,6 +484,22 @@ export default {
   methods: {
     init() {
       this.initPlayer()
+    },
+    settingsToggle() {
+      this.$refs.settingsPanel.toggle()
+    },
+    settingsChange(res) {
+      const { type, value } = res
+      switch (type) {
+        case 'autoStretch':
+          this.settingPlayer('autoStretch', value)
+          break
+        case 'rotate':
+          this.rotate(value, true)
+          break
+        default:
+          break
+      }
     },
     handleAlwaysShowToolbar() {
       if (this.alwaysShowToolbar) {
@@ -734,6 +721,7 @@ export default {
           this.player?.setOption(optionName, value)
           break
       }
+      console.log(value)
     },
     // #endregion
 

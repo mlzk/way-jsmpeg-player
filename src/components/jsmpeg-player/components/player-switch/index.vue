@@ -2,7 +2,7 @@
   <div class="player-switch">
     <input
       id="s2"
-      checked
+      :checked="value"
       class="switch"
       type="checkbox"
       @click="handleChange"
@@ -24,8 +24,8 @@ export default {
   },
   methods: {
     handleChange() {
-      this.$emit('unpdate:value', !this.value)
-      this.$emit('change')
+      this.$emit('update:value', !this.value)
+      this.$emit('change', !this.value)
     }
   }
 }

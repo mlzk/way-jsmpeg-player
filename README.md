@@ -84,11 +84,15 @@ export default {
 | options        | object  | jsmpeg原生选项，直接透传，详见下表                                           |
 | closeable      | boolean | 是否可关闭（单击关闭按钮，仅抛出事件）                                       |
 | in-background  | boolean | 是否处于后台，如el-tabs的切换，路由的切换等，支持.sync修饰符                 |
-| show-duration  | boolean | 是否现实持续播放时间                                                         |
+| show-duration  | boolean | 是否现实持续播放时 默认关闭间                                                         |
 | default-mute   | boolean | 默认静音                                                                     |
 | with-toolbar   | boolean | 是否需要工具栏                                                               |
 |alwaysShowToolbar| boolean | 是否总是显示工具栏 （with-toolbar需要设置为true）                                                            |
-| loading-text   | boolean | 加载时的文本，默认为：拼命加载中...                                          |
+| loading-text   | string | 加载时的文本，默认为：LOADING                                          |
+| videoTipsTopLeft  | string | 贴片文案       左上                                    |
+| videoTipsTopRight   | string | 贴片文案      右上                                    |
+| videoTipsBottomLeft   | string | 贴片文案      左下                                    |
+| videoTipsBottomRight   | string | 贴片文案      右下                                    |
 
 **原生属性：**
 
@@ -142,9 +146,9 @@ export default {
 | --------- | ---- | ------------------------------------------------ |
 | title     | 无   | 标题插槽，使用此插槽后title属性失效              |
 | no-signal | 无   | 无信号时的插槽，使用此插槽后noSignalText属性失效 |
+| video-tips-top | 无   | 顶部贴片文案 |
+| video-tips-bottom | 无   | 底部贴片文案|
 
-## 功能 & 计划
-- [ ] 剔除element-ui的依赖，自行实现部分组件
 # 运行DEMO
 
 1. 拉取git仓库

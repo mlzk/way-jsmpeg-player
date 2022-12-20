@@ -22,18 +22,29 @@
         :always-show-toolbar="true"
         :url="url"
         :with-toolbar="true"
-    /></div>
+      >
+        <template slot="video-tips-top">
+          <div>贴片文字</div>
+        </template>
+      </jsmpeg-player>
+    </div>
 
     <div
       class="aa"
       style="height: 300px; position: relative"
     >
+      <p>推荐配置</p>
+      <p
+        >ffmpeg -re -i avatar.mp4 -r 23.98 -q 0 -f mpegts -codec:v mpeg1video -s
+        640x360 -an -bf 0 -maxrate 4000k http://127.0.0.1:8890/jsmpeg</p
+      >
     </div>
   </div>
 </template>
 
 <script>
-const demoUrl = 'ws://localhost:8891'
+const demoUrl =
+  'ws://192.168.9.197:5000?url=rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4'
 
 class Timer {
   _startTime = null

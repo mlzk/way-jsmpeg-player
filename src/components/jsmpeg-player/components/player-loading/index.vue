@@ -1,5 +1,5 @@
 <template>
-  <div class="player-state">
+  <div class="player-loading">
     <div class="loading">
       <div class="loading-text">
         <span
@@ -15,7 +15,7 @@
 
 <script>
 export default {
-  name: 'Playerstate',
+  name: 'PlayerLoading',
   props: {
     text: {
       default: 'loading',
@@ -35,7 +35,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.player-state {
+.player-loading {
   width: 100%;
   height: 100%;
   display: flex;
@@ -45,6 +45,7 @@ export default {
   top: 0;
   left: 0;
   color: #fff;
+  user-select: none;
   @import url(https://fonts.googleapis.com/css?family=Quattrocento+Sans);
 
   @mixin position-center($text-align: center) {
@@ -69,6 +70,7 @@ export default {
 
   .loading-text {
     @include position-center;
+    user-select: none;
     width: 100%;
     height: 100px;
     line-height: 100px;
