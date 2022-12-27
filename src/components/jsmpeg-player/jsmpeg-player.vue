@@ -6,7 +6,7 @@
   >
     <div
       class="player-header"
-      :class="{ 'is-show': showTitle }"
+      :class="{ 'is-show': showTitle && inited }"
     >
       <slot
         v-if="$slots.title"
@@ -36,19 +36,7 @@
         @click="$emit('close')"
       ></button>
     </div>
-    <div
-      class="video-tips video-tips-top"
-      :class="{ 'with-titleBar': showTitle }"
-    >
-      <slot name="video-tips-top">
-        <div class="video-tips-left video-tips-text">{{
-          videoTipsTopLeft
-        }}</div>
-        <div class="video-tips-right video-tips-text">{{
-          videoTipsTopRight
-        }}</div>
-      </slot>
-    </div>
+
     <div
       ref="canvas-wrap"
       class="player-canvas__wrap"
@@ -56,6 +44,12 @@
       @dblclick="toggleFullscreen"
       @mousemove.passive="handleCanvasMouseMove"
     >
+      <img
+        v-if="poster && !flags.noSignal && !inited"
+        alt="poster"
+        class="poster"
+        :src="poster"
+      />
       <!-- <player-state :text="loadingText"></player-state> -->
       <player-loading
         v-if="loading"
@@ -73,6 +67,21 @@
       </template>
     </div>
     <div
+      v-if="(!loading && !flags.noSignal && inited) || alwaysShowVideoTips"
+      class="video-tips video-tips-top"
+      :class="{ 'with-titleBar': showTitle && inited && displayTitle }"
+    >
+      <slot name="video-tips-top">
+        <div class="video-tips-left video-tips-text">{{
+          videoTipsTopLeft
+        }}</div>
+        <div class="video-tips-right video-tips-text">{{
+          videoTipsTopRight
+        }}</div>
+      </slot>
+    </div>
+    <div
+      v-if="(!loading && !flags.noSignal && inited) || alwaysShowVideoTips"
       class="video-tips video-tips-bottom"
       :class="{ 'with-toolbar': withToolbar }"
     >
@@ -252,10 +261,34 @@ export default {
       type: Object,
       default: defaultOptions
     },
+    /** 是否自动播放流 设置为false 在收到源数据后会调用pause()暂停*/
+    autoPlay: {
+      type: Boolean,
+      default: true
+    },
+    /** 是否自动拉伸 */
+    autoStretch: {
+      type: Boolean,
+      default: false
+    },
     /** 是否可关闭（单击关闭按钮，仅抛出事件） */
     closeable: Boolean,
     /** 是否处于后台，如el-tabs的切换，路由的切换等 */
     inBackground: Boolean,
+    /** 海报图片地址，区别于jsmpeg原生的options.poster  */
+    poster: {
+      type: String
+    },
+    /** 是否总是展示贴片文案 */
+    alwaysShowVideoTips: {
+      type: Boolean,
+      default: false
+    },
+    /** 是否自动初始化 */
+    autoInit: {
+      type: Boolean,
+      default: true
+    },
     /** 是否现实持续播放时间 */
     showDuration: {
       type: Boolean,
@@ -314,6 +347,7 @@ export default {
       /** @type {import('./jsmpeg/types').JSMpegPlayer} */
       player: null,
       lastVolume: 0,
+      inited: false, // 是否完成初始化
       flags: {
         /**
          * 是否处于无信号状态
@@ -326,7 +360,9 @@ export default {
         /** 是否鼠标悬停在播放器内部 */
         playerHover: false,
         /** 是否处于全屏播放 */
-        fullscreen: false
+        fullscreen: false,
+        /** 是否首次播放 */
+        firstTimePlay: true
       },
       playerSettings: {
         disableGl: false,
@@ -431,6 +467,8 @@ export default {
       // } else {
       //   this.initPlayer()
       // }
+      // if (!this.autoInit && this.url) {
+      // }
       this.player?.destroy()
 
       if (this.url == null || this.url == '') {
@@ -474,16 +512,23 @@ export default {
     window.addEventListener('unload', () => {
       this.destroyPlayer()
     })
+
     this.init()
   },
+
   beforeDestroy() {
     this.destroyPlayer()
   },
   // #endregion
 
   methods: {
+    handleDefalutPlayerSettings() {
+      this.playerSettings.autoStretch = this.autoStretch
+    },
     init() {
-      this.initPlayer()
+      if (this.autoInit) {
+        this.initPlayer()
+      }
     },
     settingsToggle() {
       this.$refs.settingsPanel.toggle()
@@ -506,10 +551,16 @@ export default {
         this.flags.playerHover = true
       }
     },
+    addStyles(element, styles) {
+      for (var name in styles) {
+        element.style[name] = styles[name]
+      }
+    },
     initPlayer() {
-      if (!this.url) return
-
+      if (!this.url || this.player) return
+      this.inited = true
       this.loading = true
+      this.handleDefalutPlayerSettings()
       this.player = new JSMpeg.Player(this.url, {
         contianer: this.$refs['canvas-wrap'],
         ...this.options,
@@ -523,6 +574,12 @@ export default {
           this.loading = false
           console.log('onPlay')
           this.$emit('play', player)
+          if (!this.autoPlay && this.flags.firstTimePlay) {
+            setTimeout(() => {
+              this.pause()
+              this.flags.firstTimePlay = false
+            }, 300)
+          }
         },
         onPause: (player) => {
           this.loading = false
@@ -587,6 +644,7 @@ export default {
           this.$emit('resolution-decode', width, height)
         }
       })
+
       this.playerSettings.backgroudPlay = !this.options.pauseWhenHidden
 
       if (this.defaultMute) {
@@ -673,6 +731,21 @@ export default {
       this.stop()
       this.player?.destroy()
       this.player = null
+      this.inited = false
+      this.flags = {
+        noSignal: false,
+        gotResolution: false,
+        playerHover: false,
+        fullscreen: false,
+        firstTimePlay: true
+      }
+      this.$refs.settingsPanel.hide()
+    },
+    setVolume(val) {
+      if (0 < val < 1 || val == 0 || val == 1) {
+        this.volume = val
+        this.$emit('volume-change', this.volume)
+      }
     },
     mute() {
       this.lastVolume = this.volume
@@ -715,7 +788,7 @@ export default {
             canvas.style.width = ''
             canvas.style.height = ''
           }
-
+          this.playerSettings.autoStretch = value
           break
         default:
           this.player?.setOption(optionName, value)

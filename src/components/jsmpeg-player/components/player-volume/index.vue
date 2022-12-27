@@ -23,7 +23,8 @@ export default {
       default: true
     },
     value: {
-      type: Number
+      type: Number,
+      default: 0
     }
   },
   data() {
@@ -31,7 +32,8 @@ export default {
   },
   computed: {
     handleValue() {
-      return this.value * 100
+      console.log(this.value)
+      return this.value * 100 > 100 ? 100 : this.value * 100
     }
   },
   watch: {},

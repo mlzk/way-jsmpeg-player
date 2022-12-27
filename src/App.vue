@@ -13,19 +13,23 @@
         >
           连接
         </el-button>
-        <el-button @click="url = tempUrl = demoUrl">重置</el-button>
+        <el-button @click="url = tempUrl = demoUrl">重置链接</el-button>
+        <el-button @click="init">手动初始化</el-button>
+        <el-button @click="destroyPlayer">销毁</el-button>
       </el-row>
       <el-row class="current-time"> 延迟测试：{{ currTime }} </el-row>
     </div>
     <div class="main">
       <jsmpeg-player
-        :always-show-toolbar="true"
+        ref="player"
+        :always-show-toolbar="false"
+        :auto-init="true"
+        :auto-play="true"
+        :poster="poster"
+        title="测试标题"
         :url="url"
         :with-toolbar="true"
       >
-        <template slot="video-tips-top">
-          <div>贴片文字</div>
-        </template>
       </jsmpeg-player>
     </div>
 
@@ -44,7 +48,7 @@
 
 <script>
 const demoUrl =
-  'ws://192.168.9.197:5000?url=rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4'
+  'ws://192.168.9.197:5000?url=rtmp://82.157.69.211:6003/mytv/SIM013812341388-3-realplay-0'
 
 class Timer {
   _startTime = null
@@ -99,6 +103,7 @@ export default {
     return {
       url: demoUrl,
       tempUrl: demoUrl,
+      poster: 'https://t7.baidu.com/it/u=1956604245,3662848045&fm=193&f=GIF',
       timer: new Timer()
     }
   },
@@ -120,7 +125,14 @@ export default {
     this.timer.stop()
   },
   // #endregion
-  methods: {}
+  methods: {
+    init() {
+      this.$refs.player.initPlayer()
+    },
+    destroyPlayer() {
+      this.$refs.player.destroyPlayer()
+    }
+  }
 }
 </script>
 

@@ -1,6 +1,6 @@
 {
   "name": "way-jsmpeg-player",
-  "version": "1.0.4",
+  "version": "1.0.7",
   "description": "base jsmpeg.js vue player",
   "license": "MIT",
   "main": "lib/way-jsmpeg-player.umd.min.js",
